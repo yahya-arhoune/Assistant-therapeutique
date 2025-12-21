@@ -10,13 +10,73 @@ class DashboardScreen extends StatelessWidget {
     final journal = Provider.of<JournalProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Dashboard')),
+      backgroundColor: Colors.transparent,
       body: Center(
-        child: Text(
-          'Total entries: ${journal.entries.length}',
-          style: const TextStyle(fontSize: 20),
+        child: Container(
+          width: double.infinity,
+          margin: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: Colors.white.withOpacity(0.1)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.analytics_rounded,
+                  size: 60,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Insights Dashboard',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Overview of your journey',
+                style: TextStyle(color: Colors.white.withOpacity(0.5)),
+              ),
+              const SizedBox(height: 40),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildStat(context, 'Entries', '${journal.entries.length}'),
+                  _buildStat(context, 'Day Streak', '4'), // Placeholder
+                ],
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildStat(BuildContext context, String label, String value) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12),
+        ),
+      ],
     );
   }
 }

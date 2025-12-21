@@ -27,6 +27,11 @@ class AuthProvider extends ChangeNotifier {
       if (token != null) {
         _token = token;
         _user = await _userService.getProfile(token);
+        if (_user == null) {
+          // Token exists but user load failed (e.g. backend restart)
+          _token = null;
+          await _storage.delete(key: 'jwt_token');
+        }
       }
     } catch (e) {
       // Token invalid or network error, clear session

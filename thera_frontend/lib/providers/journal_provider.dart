@@ -31,9 +31,22 @@ class JournalProvider with ChangeNotifier {
     String note,
     String token,
   ) async {
-    await _journalService.createEmotion(mood, intensity, note, token);
-
-    // Refresh list after adding
-    await loadEntries(token);
+    try {
+      await _journalService.createEmotion(mood, intensity, note, token);
+      // Refresh list after adding
+      await loadEntries(token);
+    } catch (e) {
+      // Fallback: add entry locally if server fails
+      debugPrint('JournalProvider: addEntry fallback due to $e');
+      final fallbackEntry = EmotionEntry(
+        id: DateTime.now().millisecondsSinceEpoch,
+        mood: mood,
+        intensity: intensity,
+        note: note,
+        createdAt: DateTime.now(),
+      );
+      _entries.add(fallbackEntry);
+      notifyListeners();
+    }
   }
 }

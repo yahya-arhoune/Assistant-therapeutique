@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:thera_frontend/config/api_config.dart';
 import '../models/emotion_entry.dart';
@@ -11,7 +12,7 @@ class JournalService {
     String note,
     String token,
   ) async {
-    print('JournalService: Creating emotion $mood'); // DEBUG
+    debugPrint('JournalService: Creating emotion $mood'); // DEBUG
     final url = Uri.parse(ApiConfig.createEmotion);
     
     try {
@@ -28,20 +29,21 @@ class JournalService {
         }),
       );
 
-      print('JournalService: Create Response ${response.statusCode}'); // DEBUG
+      debugPrint('JournalService: Create Response ${response.statusCode}'); // DEBUG
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Failed to save emotion: ${response.statusCode}');
+        debugPrint('JournalService: createEmotion error body: ${response.body}');
+        throw Exception('Failed to save emotion: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('JournalService: Create error: $e'); // DEBUG
+      debugPrint('JournalService: Create error: $e'); // DEBUG
       rethrow;
     }
   }
 
   /// GET ALL EMOTIONS
   Future<List<EmotionEntry>> getEmotions(String token) async {
-    print('JournalService: Fetching emotions'); // DEBUG
+    debugPrint('JournalService: Fetching emotions'); // DEBUG
     final url = Uri.parse(ApiConfig.getEmotions);
 
     try {
@@ -53,7 +55,7 @@ class JournalService {
         },
       );
 
-      print('JournalService: Get Response ${response.statusCode}'); // DEBUG
+      debugPrint('JournalService: Get Response ${response.statusCode}'); // DEBUG
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
@@ -62,7 +64,7 @@ class JournalService {
         throw Exception('Failed to load emotions: ${response.statusCode}');
       }
     } catch (e) {
-      print('JournalService: Get error: $e'); // DEBUG
+      debugPrint('JournalService: Get error: $e'); // DEBUG
       rethrow;
     }
   }
