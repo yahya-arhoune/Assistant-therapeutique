@@ -5,6 +5,7 @@ import com.example.demo.entity.User;
 import com.example.demo.repository.ChatMessageRepository;
 import com.example.demo.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ChatService {
@@ -21,28 +22,36 @@ public class ChatService {
         this.aiService = aiService;
     }
 
+    @Transactional
     public ChatMessage processUserMessage(Long userId, String message) {
 
+        // ✅ Validate user
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Save user message
+        // ✅ Save user message
         ChatMessage userMsg = new ChatMessage();
         userMsg.setUser(user);
         userMsg.setSender("user");
         userMsg.setMessage(message);
         chatRepository.save(userMsg);
 
-        // AI response
-        String aiReply = aiService.getTherapeuticResponse(message);
+        // ✅ Get AI response (Groq/OpenAI via AiService)
+        String aiReply;
+        try {
+            aiReply = aiService.getTherapeuticResponse(message);
+        } catch (Exception e) {
+            aiReply = "Je suis désolé, je rencontre un problème technique pour le moment.";
+        }
 
-        // Save AI message
+        // ✅ Save AI message
         ChatMessage aiMsg = new ChatMessage();
         aiMsg.setUser(user);
         aiMsg.setSender("ai");
         aiMsg.setMessage(aiReply);
         chatRepository.save(aiMsg);
 
+        // ✅ Return AI message to controller
         return aiMsg;
     }
 }

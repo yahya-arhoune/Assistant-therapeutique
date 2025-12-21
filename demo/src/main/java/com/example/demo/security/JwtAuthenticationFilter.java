@@ -44,10 +44,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String email = jwtTokenProvider.getEmailFromToken(token);
 
                 // Load USER entity (not only UserDetails)
-                User user = (User) userDetailsService
+                CustomUserDetails userDetails = (CustomUserDetails) userDetailsService
                         .loadUserByUsername(email);
 
-                // Add ROLE_ prefix (Spring Security requirement)
+// Get your entity
+                User user = userDetails.getUser();
+
+// Add ROLE_ prefix (Spring Security requirement)
                 SimpleGrantedAuthority authority =
                         new SimpleGrantedAuthority(
                                 "ROLE_" + user.getRole().name()
@@ -55,7 +58,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
-                                user,
+                                userDetails, // <-- pass userDetails here, not the entity
                                 null,
                                 List.of(authority)
                         );
