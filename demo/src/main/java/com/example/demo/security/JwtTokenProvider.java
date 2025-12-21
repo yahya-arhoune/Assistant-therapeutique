@@ -1,6 +1,7 @@
 package com.example.demo.security;
 
 
+import com.example.demo.entity.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -28,7 +29,7 @@ public class JwtTokenProvider {
         key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    public String generateToken(String user) {
+    public String generateToken(User user) {
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", user.getRole().name());

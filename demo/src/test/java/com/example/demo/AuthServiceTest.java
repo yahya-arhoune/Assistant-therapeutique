@@ -34,7 +34,7 @@ class AuthServiceTest {
         Mockito.when(userRepository.findByEmail("test@mail.com"))
                 .thenReturn(Optional.of(user));
 
-        Mockito.when(jwtTokenProvider.generateToken("test@mail.com"))
+        Mockito.when(jwtTokenProvider.generateToken(Mockito.any(User.class)))
                 .thenReturn("fake-jwt-token");
 
         String token = "fake-jwt-token";
