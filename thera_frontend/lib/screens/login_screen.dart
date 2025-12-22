@@ -23,11 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF0A0A0A),
-            Color(0xFF1A1A2E),
-            Color(0xFF16213E),
-          ],
+          colors: [Color(0xFF0A0A0A), Color(0xFF1A1A2E), Color(0xFF16213E)],
         ),
       ),
       child: Scaffold(
@@ -41,9 +37,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withAlpha((0.1 * 255).round()),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.2)),
+                    border: Border.all(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withAlpha((0.2 * 255).round()),
+                    ),
                   ),
                   child: Icon(
                     Icons.psychology_rounded,
@@ -63,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   'Your space-age support',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
+                    color: Colors.white.withAlpha((0.5 * 255).round()),
                     fontSize: 16,
                   ),
                 ),
@@ -71,9 +73,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withAlpha((0.05 * 255).round()),
                     borderRadius: BorderRadius.circular(30),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                    border: Border.all(
+                      color: Colors.white.withAlpha((0.1 * 255).round()),
+                    ),
                   ),
                   child: Column(
                     children: [
@@ -106,18 +110,29 @@ class _LoginScreenState extends State<LoginScreen> {
                                       passwordController.text,
                                     );
                                     if (!context.mounted) return;
-                                    
+
                                     if (success) {
-                                      Navigator.pushReplacementNamed(context, '/home');
+                                      Navigator.pushReplacementNamed(
+                                        context,
+                                        '/home',
+                                      );
                                     } else {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Login failed: Invalid credentials')),
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Login failed: Invalid credentials',
+                                          ),
+                                        ),
                                       );
                                     }
                                   } catch (e) {
                                     if (!context.mounted) return;
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Login failed')),
+                                      const SnackBar(
+                                        content: Text('Login failed'),
+                                      ),
                                     );
                                   }
                                 },
@@ -133,7 +148,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: RichText(
                     text: TextSpan(
                       text: "Don't have an account? ",
-                      style: TextStyle(color: Colors.white.withOpacity(0.6)),
+                      style: TextStyle(
+                        color: Colors.white.withAlpha((0.6 * 255).round()),
+                      ),
                       children: [
                         TextSpan(
                           text: 'Create one',

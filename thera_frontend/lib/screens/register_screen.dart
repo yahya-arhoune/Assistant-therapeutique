@@ -23,11 +23,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF0A0A0A),
-            Color(0xFF1A1A2E),
-            Color(0xFF16213E),
-          ],
+          colors: [Color(0xFF0A0A0A), Color(0xFF1A1A2E), Color(0xFF16213E)],
         ),
       ),
       child: Scaffold(
@@ -57,7 +53,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Text(
                 'Create your therapeutic assistant account',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withAlpha((0.5 * 255).round()),
                   fontSize: 16,
                 ),
               ),
@@ -65,9 +61,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
+                  color: Colors.white.withAlpha((0.05 * 255).round()),
                   borderRadius: BorderRadius.circular(30),
-                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                  border: Border.all(
+                    color: Colors.white.withAlpha((0.1 * 255).round()),
+                  ),
                 ),
                 child: Column(
                   children: [
@@ -97,13 +95,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      value: _selectedRole,
+                      initialValue: _selectedRole,
                       dropdownColor: const Color(0xFF1E1E1E),
                       items: ['USER', 'ADMIN']
-                          .map((role) => DropdownMenuItem(
-                                value: role,
-                                child: Text(role),
-                              ))
+                          .map(
+                            (role) => DropdownMenuItem(
+                              value: role,
+                              child: Text(role),
+                            ),
+                          )
                           .toList(),
                       onChanged: (val) => setState(() => _selectedRole = val!),
                       decoration: const InputDecoration(
@@ -124,15 +124,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               _selectedRole,
                             );
                             if (!context.mounted) return;
-                            
+
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Registration successful! Please login.')),
+                              const SnackBar(
+                                content: Text(
+                                  'Registration successful! Please login.',
+                                ),
+                              ),
                             );
                             Navigator.pop(context);
                           } catch (e) {
                             if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Registration failed: $e')),
+                              SnackBar(
+                                content: Text('Registration failed: $e'),
+                              ),
                             );
                           }
                         },

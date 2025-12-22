@@ -33,7 +33,6 @@ class TheraApp extends StatelessWidget {
             primary: const Color(0xFF9C27B0),
             secondary: const Color(0xFF00BCD4),
             surface: const Color(0xFF121212),
-            background: const Color(0xFF0A0A0A),
           ),
           scaffoldBackgroundColor: const Color(0xFF0A0A0A),
           cardTheme: CardThemeData(

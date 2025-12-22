@@ -44,83 +44,153 @@ class _JournalScreenState extends State<JournalScreen> {
         child: Column(
           children: [
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(25),
-                border: Border.all(color: Colors.white.withOpacity(0.1)),
-              ),
-              child: Column(
-                children: [
-                  EmotionSelector(
-                    onSelected: (mood, intensity) {
-                      setState(() {
-                        selectedMood = mood;
-                        selectedIntensity = intensity;
-                      });
-                    },
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.5,
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha((0.05 * 255).round()),
+                  borderRadius: BorderRadius.circular(25),
+                  border: Border.all(
+                    color: Colors.white.withAlpha((0.1 * 255).round()),
                   ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: noteController,
-                    decoration: InputDecoration(
-                      hintText: 'Add a note...',
-                      hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            EmotionSelector(
+                              onSelected: (mood, intensity) {
+                                setState(() {
+                                  selectedMood = mood;
+                                  selectedIntensity = intensity;
+                                });
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Description',
+                                style: TextStyle(
+                                  color: Colors.white.withAlpha(
+                                    (0.85 * 255).round(),
+                                  ),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextField(
+                              controller: noteController,
+                              minLines: 3,
+                              maxLines: 5,
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: Colors.white.withAlpha(
+                                  (0.02 * 255).round(),
+                                ),
+                                hintText: 'Add a short reflection or note...',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                    color: Colors.white.withAlpha(
+                                      (0.08 * 255).round(),
+                                    ),
+                                  ),
+                                ),
+                                hintStyle: TextStyle(
+                                  color: Colors.white.withAlpha(
+                                    (0.35 * 255).round(),
+                                  ),
+                                ),
+                                contentPadding: const EdgeInsets.all(12),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    maxLines: 2,
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        debugPrint('JournalScreen: User ID: ${auth.user?.id}, Role: ${auth.user?.role}');
-                        try {
-                          await journal.addEntry(
-                            selectedMood,
-                            selectedIntensity,
-                            noteController.text,
-                            auth.token!,
-                          );
-                          if (!context.mounted) return;
-                          noteController.clear();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Emotion added!')),
-                          );
-                        } catch (e) {
-                          if (!context.mounted) return;
-                          
-                          if (e.toString().contains('403')) {
-                               // Server rejected request (e.g., offline or auth issue).
-                               // Show a friendly message but keep the user logged in.
-                               ScaffoldMessenger.of(context).showSnackBar(
-                                 const SnackBar(content: Text('Could not sync with server, saved locally.')),
-                               );
-                             } else {
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          final noteText = noteController.text.trim();
+                          if (noteText.isEmpty) {
+                            if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Failed to add emotion: $e')),
+                              const SnackBar(
+                                content: Text(
+                                  'Please add a short description.',
+                                ),
+                              ),
                             );
+                            return;
                           }
-                        }
-                      },
-                      child: const Text('Save Reflection'),
+                          debugPrint(
+                            'JournalScreen: User ID: ${auth.user?.id}, Role: ${auth.user?.role}',
+                          );
+                          try {
+                            await journal.addEntry(
+                              selectedMood,
+                              selectedIntensity,
+                              noteText,
+                              auth.token!,
+                            );
+                            if (!context.mounted) return;
+                            noteController.clear();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Reflection saved.'),
+                              ),
+                            );
+                          } catch (e) {
+                            if (!context.mounted) return;
+
+                            if (e.toString().contains('403')) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Saved locally — will sync when online.',
+                                  ),
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Failed to save reflection: $e',
+                                  ),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        child: const Text('Save Entry'),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 24),
             Row(
               children: [
                 const Text(
-                  'Recent Entries',
+                  'Recent Reflections',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
                 Text(
                   '${journal.entries.length} items',
-                  style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                  style: TextStyle(
+                    color: Colors.white.withAlpha((0.5 * 255).round()),
+                  ),
                 ),
               ],
             ),
@@ -134,16 +204,23 @@ class _JournalScreenState extends State<JournalScreen> {
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.03),
+                      color: Colors.white.withAlpha((0.03 * 255).round()),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white.withOpacity(0.05)),
+                      border: Border.all(
+                        color: Colors.white.withAlpha((0.05 * 255).round()),
+                      ),
                     ),
                     child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       leading: Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withAlpha((0.1 * 255).round()),
                           shape: BoxShape.circle,
                         ),
                         child: Text(
@@ -152,25 +229,32 @@ class _JournalScreenState extends State<JournalScreen> {
                         ),
                       ),
                       title: Text(
-                        e.mood.substring(0, 1).toUpperCase() + e.mood.substring(1),
+                        '${e.mood.substring(0, 1).toUpperCase()}${e.mood.substring(1)}',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Intensity: ${e.intensity}/5'),
-                          if (e.note != null && e.note!.isNotEmpty)
+                          Text('Intensity (1–5): ${e.intensity}'),
+                          if (e.note.isNotEmpty)
                             Text(
-                              e.note!,
-                              style: TextStyle(color: Colors.white.withOpacity(0.6)),
-                              maxLines: 1,
+                              e.note,
+                              style: TextStyle(
+                                color: Colors.white.withAlpha(
+                                  (0.6 * 255).round(),
+                                ),
+                              ),
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                         ],
                       ),
                       trailing: Text(
-                        'Fixed', // Placeholder for date or status
-                        style: TextStyle(fontSize: 10, color: Colors.white.withOpacity(0.3)),
+                        _formatDate(e.createdAt),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withAlpha((0.45 * 255).round()),
+                        ),
                       ),
                     ),
                   );
@@ -185,13 +269,43 @@ class _JournalScreenState extends State<JournalScreen> {
 
   String _getEmojiForMood(String mood) {
     switch (mood.toLowerCase()) {
-      case 'happy': return '😊';
-      case 'sad': return '😢';
-      case 'anxious': return '😰';
-      case 'angry': return '😡';
-      case 'calm': return '😌';
-      default: return '😐';
+      case 'happy':
+        return '😊';
+      case 'sad':
+        return '😢';
+      case 'anxious':
+        return '😰';
+      case 'angry':
+        return '😡';
+      case 'calm':
+        return '😌';
+      default:
+        return '😐';
     }
+  }
+
+  String _formatDate(DateTime dateTime) {
+    final dt = dateTime.toLocal();
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    final month = months[dt.month - 1];
+    final day = dt.day;
+    final year = dt.year;
+    final hour = dt.hour.toString().padLeft(2, '0');
+    final minute = dt.minute.toString().padLeft(2, '0');
+    return '$month $day, $year • $hour:$minute';
   }
 
   @override

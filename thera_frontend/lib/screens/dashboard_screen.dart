@@ -17,9 +17,11 @@ class DashboardScreen extends StatelessWidget {
           margin: const EdgeInsets.all(24),
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withAlpha((0.05 * 255).round()),
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(
+              color: Colors.white.withAlpha((0.1 * 255).round()),
+            ),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -27,7 +29,9 @@ class DashboardScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withAlpha((0.1 * 255).round()),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -44,7 +48,9 @@ class DashboardScreen extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 'Overview of your journey',
-                style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                style: TextStyle(
+                  color: Colors.white.withAlpha((0.5 * 255).round()),
+                ),
               ),
               const SizedBox(height: 40),
               Row(
@@ -74,7 +80,10 @@ class DashboardScreen extends StatelessWidget {
         ),
         Text(
           label,
-          style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12),
+          style: TextStyle(
+            color: Colors.white.withAlpha((0.5 * 255).round()),
+            fontSize: 12,
+          ),
         ),
       ],
     );

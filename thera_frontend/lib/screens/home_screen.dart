@@ -6,6 +6,7 @@ import 'journal_screen.dart';
 import 'chat_screen.dart';
 import 'dashboard_screen.dart';
 import 'login_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,11 +22,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
 
-    // Screens depend on role
+    // Screens: Journal, Chat, Dashboard (visible to all users)
     final screens = [
       const JournalScreen(),
       const ChatScreen(),
-      if (auth.isAdmin) const DashboardScreen(),
+      const DashboardScreen(),
     ];
 
     return Container(
@@ -33,11 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF0A0A0A),
-            Color(0xFF1A1A2E),
-            Color(0xFF16213E),
-          ],
+          colors: [Color(0xFF0A0A0A), Color(0xFF1A1A2E), Color(0xFF16213E)],
         ),
       ),
       child: Scaffold(
@@ -49,17 +46,23 @@ class _HomeScreenState extends State<HomeScreen> {
           title: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withAlpha((0.05 * 255).round()),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              border: Border.all(
+                color: Colors.white.withAlpha((0.1 * 255).round()),
+              ),
             ),
             child: Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primary.withAlpha((0.2 * 255).round()),
                   child: Text(
-                    auth.user?.username?.substring(0, 1).toUpperCase() ?? '?',
-                    style: TextStyle(color: Theme.of(context).colorScheme.primary),
+                    (auth.user?.username ?? '?').substring(0, 1).toUpperCase(),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -69,13 +72,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       'Hello, ${auth.user?.username ?? 'User'}',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Text(
                       auth.user?.role ?? '',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Theme.of(context).colorScheme.secondary.withOpacity(0.8),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.secondary.withAlpha((0.8 * 255).round()),
                       ),
                     ),
                   ],
@@ -84,10 +92,18 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           actions: [
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                );
+              },
+            ),
             Container(
               margin: const EdgeInsets.only(right: 16, top: 10, bottom: 10),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.red.withAlpha((0.1 * 255).round()),
                 borderRadius: BorderRadius.circular(15),
               ),
               child: IconButton(
@@ -101,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
-            )
+            ),
           ],
         ),
 
@@ -110,12 +126,14 @@ class _HomeScreenState extends State<HomeScreen> {
         bottomNavigationBar: Container(
           margin: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withAlpha((0.05 * 255).round()),
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(
+              color: Colors.white.withAlpha((0.1 * 255).round()),
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withAlpha((0.2 * 255).round()),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -128,25 +146,24 @@ class _HomeScreenState extends State<HomeScreen> {
               elevation: 0,
               currentIndex: _index,
               selectedItemColor: Theme.of(context).colorScheme.secondary,
-              unselectedItemColor: Colors.white.withOpacity(0.5),
+              unselectedItemColor: Colors.white.withAlpha((0.5 * 255).round()),
               type: BottomNavigationBarType.fixed,
               onTap: (i) {
                 setState(() => _index = i);
               },
-              items: [
-                const BottomNavigationBarItem(
+              items: const [
+                BottomNavigationBarItem(
                   icon: Icon(Icons.auto_stories_rounded),
                   label: 'Journal',
                 ),
-                const BottomNavigationBarItem(
+                BottomNavigationBarItem(
                   icon: Icon(Icons.forum_rounded),
                   label: 'Chat',
                 ),
-                if (auth.isAdmin)
-                  const BottomNavigationBarItem(
-                    icon: Icon(Icons.dashboard_rounded),
-                    label: 'Admin',
-                  ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.dashboard_rounded),
+                  label: 'Dashboard',
+                ),
               ],
             ),
           ),

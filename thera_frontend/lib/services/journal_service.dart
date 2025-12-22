@@ -14,26 +14,42 @@ class JournalService {
   ) async {
     debugPrint('JournalService: Creating emotion $mood'); // DEBUG
     final url = Uri.parse(ApiConfig.createEmotion);
-    
+
+    final tokenDisplay = (token != null && token.isNotEmpty)
+        ? '${token.substring(0, 8)}...'
+        : 'NONE';
+
+    debugPrint('JournalService: POST $url');
+    debugPrint(
+      'JournalService: headers: Content-Type: application/json, Authorization: Bearer $tokenDisplay',
+    );
+    debugPrint(
+      'JournalService: body: ${jsonEncode({'mood': mood, 'intensity': intensity, 'note': note})}',
+    );
+
     try {
       final response = await http.post(
         url,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
+          'Authorization': token != null && token.isNotEmpty
+              ? 'Bearer $token'
+              : '',
         },
-        body: jsonEncode({
-          'mood': mood,
-          'intensity': intensity,
-          'note': note
-        }),
+        body: jsonEncode({'mood': mood, 'intensity': intensity, 'note': note}),
       );
 
-      debugPrint('JournalService: Create Response ${response.statusCode}'); // DEBUG
+      debugPrint(
+        'JournalService: Create Response ${response.statusCode}',
+      ); // DEBUG
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        debugPrint('JournalService: createEmotion error body: ${response.body}');
-        throw Exception('Failed to save emotion: ${response.statusCode} - ${response.body}');
+        debugPrint(
+          'JournalService: createEmotion error body: ${response.body}',
+        );
+        throw Exception(
+          'Failed to save emotion: ${response.statusCode} - ${response.body}',
+        );
       }
     } catch (e) {
       debugPrint('JournalService: Create error: $e'); // DEBUG
@@ -46,16 +62,27 @@ class JournalService {
     debugPrint('JournalService: Fetching emotions'); // DEBUG
     final url = Uri.parse(ApiConfig.getEmotions);
 
+    final tokenDisplay = (token != null && token.isNotEmpty)
+        ? '${token.substring(0, 8)}...'
+        : 'NONE';
+
+    debugPrint('JournalService: GET $url');
+    debugPrint('JournalService: headers: Authorization: Bearer $tokenDisplay');
+
     try {
       final response = await http.get(
         url,
         headers: {
-          'Authorization': 'Bearer $token',
+          'Authorization': token != null && token.isNotEmpty
+              ? 'Bearer $token'
+              : '',
           'Content-Type': 'application/json',
         },
       );
 
-      debugPrint('JournalService: Get Response ${response.statusCode}'); // DEBUG
+      debugPrint(
+        'JournalService: Get Response ${response.statusCode}',
+      ); // DEBUG
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);

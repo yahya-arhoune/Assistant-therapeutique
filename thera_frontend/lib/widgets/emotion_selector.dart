@@ -30,7 +30,7 @@ class _EmotionSelectorState extends State<EmotionSelector> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Colors.white.withOpacity(0.9),
+            color: Colors.white.withAlpha((0.9 * 255).round()),
           ),
         ),
         const SizedBox(height: 16),
@@ -50,13 +50,15 @@ class _EmotionSelectorState extends State<EmotionSelector> {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? Theme.of(context).colorScheme.primary.withOpacity(0.2)
-                        : Colors.white.withOpacity(0.05),
+                        ? Theme.of(
+                            context,
+                          ).colorScheme.primary.withAlpha((0.2 * 255).round())
+                        : Colors.white.withAlpha((0.05 * 255).round()),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: isSelected
                           ? Theme.of(context).colorScheme.primary
-                          : Colors.white.withOpacity(0.1),
+                          : Colors.white.withAlpha((0.1 * 255).round()),
                       width: 2,
                     ),
                   ),
@@ -69,7 +71,9 @@ class _EmotionSelectorState extends State<EmotionSelector> {
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
-                          color: isSelected ? Colors.white : Colors.white.withOpacity(0.5),
+                          color: isSelected
+                              ? Colors.white
+                              : Colors.white.withAlpha((0.5 * 255).round()),
                         ),
                       ),
                     ],
@@ -87,7 +91,7 @@ class _EmotionSelectorState extends State<EmotionSelector> {
               'Intensity',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withAlpha((0.9 * 255).round()),
               ),
             ),
             Text(
@@ -102,9 +106,11 @@ class _EmotionSelectorState extends State<EmotionSelector> {
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
             activeTrackColor: Theme.of(context).colorScheme.secondary,
-            inactiveTrackColor: Colors.white.withOpacity(0.1),
+            inactiveTrackColor: Colors.white.withAlpha((0.1 * 255).round()),
             thumbColor: Colors.white,
-            overlayColor: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+            overlayColor: Theme.of(
+              context,
+            ).colorScheme.secondary.withAlpha((0.2 * 255).round()),
             valueIndicatorColor: Theme.of(context).colorScheme.secondary,
           ),
           child: Slider(
