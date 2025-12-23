@@ -1,30 +1,68 @@
-<div class="card card-body">
-  <div class="d-flex align-items-center justify-content-between mb-2">
-    <h5 class="mb-0">{{ entry ? 'Edit Entry' : 'New Entry' }}</h5>
-    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cancel()">Cancel</button>
+<div class="card border-0 shadow-lg">
+  <div class="card-header bg-dark bg-gradient text-white d-flex align-items-center justify-content-between">
+    <div>
+      <div class="fw-semibold">{{ entry ? 'Edit Entry' : 'New Entry' }}</div>
+      <div class="small text-white-50">Log your mood like a captain’s log.</div>
+    </div>
+    <button type="button" class="btn btn-sm btn-outline-light" (click)="cancel()">Cancel</button>
   </div>
 
-  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <div class="card-body">
+    <div *ngIf="error" class="alert alert-danger mb-3">{{ error }}</div>
 
-  <form [formGroup]="form" (ngSubmit)="submit()">
-    <div class="mb-3">
-      <label class="form-label">Mood</label>
-      <input class="form-control" formControlName="mood" placeholder="e.g. Happy, Sad, Anxious" />
-    </div>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <label class="form-label">Mood</label>
+          <input
+            class="form-control"
+            formControlName="mood"
+            placeholder="e.g. Calm, Focused, Anxious"
+            [class.is-invalid]="form.controls.mood.touched && form.controls.mood.invalid"
+          />
+          <div class="invalid-feedback">Mood is required.</div>
+        </div>
 
-    <div class="mb-3">
-      <label class="form-label">Intensity (1-10)</label>
-      <input class="form-control" type="number" min="1" max="10" formControlName="intensity" />
-    </div>
+        <div class="col-12 col-md-6">
+          <label class="form-label">Intensity</label>
+          <div class="input-group">
+            <span class="input-group-text">1–10</span>
+            <input
+              class="form-control"
+              type="number"
+              min="1"
+              max="10"
+              formControlName="intensity"
+              [class.is-invalid]="form.controls.intensity.touched && form.controls.intensity.invalid"
+            />
+            <div class="invalid-feedback">Choose a value from 1 to 10.</div>
+          </div>
+        </div>
 
-    <div class="mb-3">
-      <label class="form-label">Note</label>
-      <textarea class="form-control" rows="3" formControlName="note"></textarea>
-      <div class="form-text">Max 500 characters.</div>
-    </div>
+        <div class="col-12">
+          <label class="form-label">Note</label>
+          <textarea
+            class="form-control"
+            rows="4"
+            formControlName="note"
+            placeholder="What happened? What did you feel in your body? What helped?"
+            [class.is-invalid]="form.controls.note.touched && form.controls.note.invalid"
+          ></textarea>
+          <div class="d-flex justify-content-between align-items-center mt-1">
+            <div class="invalid-feedback d-block" *ngIf="form.controls.note.touched && form.controls.note.hasError('required')">Note is required.</div>
+            <div class="invalid-feedback d-block" *ngIf="form.controls.note.touched && form.controls.note.hasError('maxlength')">Max 500 characters.</div>
+            <div class="ms-auto form-text">Max 500 characters.</div>
+          </div>
+        </div>
+      </div>
 
-    <button class="btn btn-primary" type="submit" [disabled]="isSubmitting">
-      {{ isSubmitting ? 'Saving…' : 'Save' }}
-    </button>
-  </form>
+      <div class="d-flex gap-2 mt-4">
+        <button class="btn btn-primary" type="submit" [disabled]="isSubmitting">
+          <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+          {{ isSubmitting ? 'Saving…' : 'Save' }}
+        </button>
+        <button class="btn btn-outline-secondary" type="button" (click)="cancel()">Close</button>
+      </div>
+    </form>
+  </div>
 </div>

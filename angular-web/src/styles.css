@@ -1,3 +1,12 @@
 @import 'bootstrap/dist/css/bootstrap.min.css';
 
 /* You can add global styles to this file, and also import other style files */
+
+body {
+	min-height: 100vh;
+	background:
+		radial-gradient(900px circle at 15% 10%, rgba(var(--bs-primary-rgb), 0.18), transparent 55%),
+		radial-gradient(800px circle at 85% 20%, rgba(var(--bs-info-rgb), 0.12), transparent 55%),
+		radial-gradient(700px circle at 60% 90%, rgba(var(--bs-primary-rgb), 0.10), transparent 55%),
+		var(--bs-body-bg);
+}

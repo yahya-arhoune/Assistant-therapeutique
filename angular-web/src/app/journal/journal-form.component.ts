@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { EmotionEntry } from '../shared/models/emotion-entry.model';
 import { JournalService } from './journal.service';
 
@@ -54,8 +55,26 @@ export class JournalFormComponent {
         this.isSubmitting = false;
         this.saved.emit();
       },
-      error: () => {
+      error: (err: unknown) => {
         this.isSubmitting = false;
+
+        if (err instanceof HttpErrorResponse) {
+          console.error('Journal save failed', {
+            status: err.status,
+            url: err.url,
+            error: err.error
+          });
+
+          const backendMessage =
+            (typeof err.error === 'string' && err.error) ||
+            (err.error && typeof err.error === 'object' && (err.error.message || err.error.error || JSON.stringify(err.error))) ||
+            null;
+          this.error = backendMessage
+            ? `Failed to save entry: ${backendMessage}`
+            : `Failed to save entry (HTTP ${err.status}).`;
+          return;
+        }
+
         this.error = 'Failed to save entry.';
       }
     });
