@@ -1,0 +1,29 @@
+<div class="container py-4" style="max-width: 720px;">
+  <h2 class="mb-3">My Profile</h2>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <div *ngIf="loading" class="text-muted">Loading…</div>
+
+  <div *ngIf="!loading" class="card card-body">
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input class="form-control" formControlName="username" />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input class="form-control" type="email" formControlName="email" />
+      </div>
+
+      <button class="btn btn-primary" type="submit" [disabled]="saving">
+        {{ saving ? 'Saving…' : 'Save Changes' }}
+      </button>
+
+      <button class="btn btn-outline-danger ms-2" type="button" (click)="deleteAccount()">
+        Delete Account
+      </button>
+    </form>
+  </div>
+</div>

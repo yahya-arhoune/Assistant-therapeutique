@@ -1,0 +1,35 @@
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="mb-0">Users</h2>
+    <button class="btn btn-outline-secondary" (click)="load()">Refresh</button>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <div *ngIf="loading" class="text-muted">Loading…</div>
+
+  <div class="table-responsive" *ngIf="!loading">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Email</th>
+          <th style="width: 180px;">Role</th>
+          <th style="width: 220px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of users">
+          <td>{{ u.username }}</td>
+          <td>{{ u.email }}</td>
+          <td><span class="badge" [ngClass]="u.role === 'ADMIN' ? 'text-bg-danger' : 'text-bg-secondary'">{{ u.role }}</span></td>
+          <td class="text-end">
+            <button class="btn btn-sm btn-outline-primary me-2" (click)="changeRole(u, 'USER')">Set USER</button>
+            <button class="btn btn-sm btn-outline-danger" (click)="changeRole(u, 'ADMIN')">Set ADMIN</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="users.length === 0" class="text-muted">No users found.</div>
+  </div>
+</div>

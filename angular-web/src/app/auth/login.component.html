@@ -1,0 +1,31 @@
+<div class="container py-4" style="max-width: 520px;">
+  <h2 class="mb-3">Login</h2>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="card card-body">
+    <div class="mb-3">
+      <label class="form-label">Email</label>
+      <input class="form-control" type="email" formControlName="email" />
+      <div class="text-danger mt-1" *ngIf="form.controls.email.touched && form.controls.email.invalid">
+        Enter a valid email.
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Password</label>
+      <input class="form-control" type="password" formControlName="password" />
+      <div class="text-danger mt-1" *ngIf="form.controls.password.touched && form.controls.password.invalid">
+        Password is required.
+      </div>
+    </div>
+
+    <button class="btn btn-primary" type="submit" [disabled]="isSubmitting">
+      {{ isSubmitting ? 'Signing in…' : 'Login' }}
+    </button>
+
+    <div class="mt-3">
+      <a routerLink="/register">Create an account</a>
+    </div>
+  </form>
+</div>
