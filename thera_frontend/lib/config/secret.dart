@@ -1,8 +1,10 @@
-// WARNING: This file contains your API key in plaintext.
-// Consider storing secrets in secure storage for production.
+// WARNING: This file contains an API key in plaintext.
+// For production, prefer storing secrets in secure storage or using
+// runtime configuration (CI/CD secrets, --dart-define, etc.).
 
-const String FALLBACK_AI_API_KEY =
-    "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";
+// Google AI Studio / Gemini API key
+const String FALLBACK_AI_API_KEY = 'AIzaSyD7lKIqO9Qmhzm4aQ-iOLVwALoUCGQCdmE';
 
-// Fallback AI endpoint compatible with OpenAI Chat Completions
-const String FALLBACK_AI_URL = 'https://api.openai.com/v1/chat/completions';
+// Gemini REST endpoint (key is provided as a query param)
+const String FALLBACK_AI_URL =
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';

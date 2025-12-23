@@ -73,7 +73,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           Padding(
                             padding: const EdgeInsets.only(bottom: 6.0),
                             child: Text(
-                              'Offline reply',
+                              'Fallback reply',
                               style: TextStyle(
                                 fontSize: 11,
                                 color: Colors.orange.withAlpha(
@@ -152,9 +152,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text(
-                                'Assistant is offline — showing a fallback reply.',
-                              ),
+                              content: Text('Using fallback assistant.'),
                             ),
                           );
                         }
@@ -173,9 +171,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text(
-                              'Assistant is offline — showing a fallback reply.',
-                            ),
+                            content: Text('Could not reach assistant.'),
                           ),
                         );
                       }

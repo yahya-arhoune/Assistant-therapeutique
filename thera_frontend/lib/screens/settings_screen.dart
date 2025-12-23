@@ -11,7 +11,6 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final _controller = TextEditingController();
   bool _loading = true;
-  bool _preferLocal = false;
 
   @override
   void initState() {
@@ -22,10 +21,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _load() async {
     final k = await SecureStorageService.getFallbackApiKey();
     if (k != null) _controller.text = k;
-    final p = await SecureStorageService.getPreferLocalAssistant();
     setState(() {
       _loading = false;
-      _preferLocal = p;
     });
   }
 
@@ -39,7 +36,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'External AI Fallback Key',
+              'Gemini API Key (Fallback Assistant)',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -47,7 +44,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               controller: _controller,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                hintText: 'Paste OpenAI-compatible API key (optional)',
+                hintText: 'Paste Google Gemini API key (optional)',
               ),
             ),
             const SizedBox(height: 12),
@@ -85,22 +82,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            SwitchListTile(
-              title: const Text('Prefer Local Assistant'),
-              subtitle: const Text(
-                'When enabled the app will respond using the built-in assistant before contacting the server or external AI.',
-              ),
-              value: _preferLocal,
-              onChanged: _loading
-                  ? null
-                  : (v) async {
-                      await SecureStorageService.setPreferLocalAssistant(v);
-                      if (!mounted) return;
-                      setState(() => _preferLocal = v);
-                    },
-            ),
-            const SizedBox(height: 8),
             const Text('Note: Saved keys are stored securely on-device.'),
           ],
         ),

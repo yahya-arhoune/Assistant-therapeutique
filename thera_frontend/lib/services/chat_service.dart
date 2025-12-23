@@ -9,26 +9,10 @@ import '../models/chat_message.dart';
 class ChatService {
   /// SEND MESSAGE TO AI
   Future<ChatMessage> sendMessage(String message, String token) async {
-    // If user prefers the local assistant, return that immediately.
-    try {
-      final preferLocal = await SecureStorageService.getPreferLocalAssistant();
-      if (preferLocal) {
-        final local = _localRuleReply(message);
-        return ChatMessage(
-          id: DateTime.now().millisecondsSinceEpoch,
-          sender: 'assistant',
-          message: local,
-          timestamp: DateTime.now(),
-          isFallback: true,
-        );
-      }
-    } catch (e) {
-      // ignore preference errors and continue with normal flow
-    }
     try {
       final url = Uri.parse(ApiConfig.sendMessage);
 
-      final tokenDisplay = (token != null && token.isNotEmpty)
+      final tokenDisplay = (token.isNotEmpty)
           ? '${token.substring(0, 8)}...'
           : 'NONE';
 
@@ -42,9 +26,7 @@ class ChatService {
         url,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': token != null && token.isNotEmpty
-              ? 'Bearer $token'
-              : '',
+          'Authorization': token.isNotEmpty ? 'Bearer $token' : '',
         },
         body: jsonEncode({'message': message}),
       );
@@ -65,7 +47,7 @@ class ChatService {
         // Log detailed server error for debugging
         debugPrint('ChatService: server error ${response.statusCode} - $body');
 
-        // Try external AI fallback (uses FALLBACK_AI_API_KEY from secret.dart)
+        // Try external AI fallback (Gemini) if backend fails
         try {
           final external = await _callExternalAi(message);
           if (external != null && external.isNotEmpty) {
@@ -74,25 +56,14 @@ class ChatService {
               sender: 'assistant',
               message: external,
               timestamp: DateTime.now(),
+              isFallback: true,
             );
           }
         } catch (e) {
           debugPrint('ChatService: external AI fallback failed: $e');
         }
 
-        // External failed — use a local rule-based reply so the app always responds.
-        final local = _localRuleReply(message);
-        if (local.isNotEmpty) {
-          return ChatMessage(
-            id: DateTime.now().millisecondsSinceEpoch,
-            sender: 'assistant',
-            message: local,
-            timestamp: DateTime.now(),
-            isFallback: true,
-          );
-        }
-
-        // Provide a graceful, helpful offline fallback as last resort
+        // No offline/local chat: return an error message.
         return ChatMessage(
           id: DateTime.now().millisecondsSinceEpoch,
           sender: 'assistant',
@@ -105,7 +76,7 @@ class ChatService {
     } catch (e) {
       debugPrint('ChatService exception: $e');
 
-      // Try external AI fallback before giving a local fallback
+      // Try external AI fallback before giving up
       try {
         final external = await _callExternalAi(message);
         if (external != null && external.isNotEmpty) {
@@ -114,116 +85,192 @@ class ChatService {
             sender: 'assistant',
             message: external,
             timestamp: DateTime.now(),
+            isFallback: true,
           );
         }
       } catch (e2) {
         debugPrint('ChatService: external AI fallback failed: $e2');
       }
 
-      // Local fallback reply so the assistant still appears responsive.
+      // No offline/local chat: return an error message.
       return ChatMessage(
         id: DateTime.now().millisecondsSinceEpoch,
         sender: 'assistant',
-        message:
-            'I\'m currently offline but heard: "$message". I\'ll reply better once the server is available.',
+        message: 'Sorry, I couldn\'t respond. Please check your connection.',
         timestamp: DateTime.now(),
         isFallback: true,
       );
     }
   }
 
-  /// Call external OpenAI-compatible chat completions as a fallback
+  /// Call external Gemini generateContent as a fallback
   Future<String?> _callExternalAi(String message) async {
     try {
-      final url = Uri.parse(FALLBACK_AI_URL);
-
       // Prefer a key stored securely on-device; fall back to the compiled secret.
       final storedKey = await SecureStorageService.getFallbackApiKey();
       final chosenKey = (storedKey != null && storedKey.isNotEmpty)
           ? storedKey
           : FALLBACK_AI_API_KEY;
-      final keyDisplay = (chosenKey != null && chosenKey.length > 8)
+
+      if (chosenKey.isEmpty) return null;
+
+      final keyDisplay = chosenKey.length > 8
           ? '${chosenKey.substring(0, 8)}...'
-          : 'NONE';
+          : '***';
 
-      debugPrint('ChatService: External AI POST $url');
-      debugPrint(
-        'ChatService: External headers: Authorization: Bearer $keyDisplay',
-      );
-
-      // System prompt to guide the external model to behave as a
-      // compassionate therapeutic assistant (empathic, non-judgmental,
-      // and focused on brief, actionable support and reflective listening).
       final systemPrompt =
           'You are a compassionate therapeutic assistant. Use empathic, non-judgmental language, validate emotions, offer brief reflective listening, and when appropriate suggest one or two small, practical coping strategies. Do not provide medical or legal advice. Keep responses supportive and concise.';
 
+      // Gemini generateContent request
       final body = jsonEncode({
-        'model': 'gpt-3.5-turbo',
-        'messages': [
-          {'role': 'system', 'content': systemPrompt},
-          {'role': 'user', 'content': message},
+        'systemInstruction': {
+          'parts': [
+            {'text': systemPrompt},
+          ],
+        },
+        'contents': [
+          {
+            'role': 'user',
+            'parts': [
+              {'text': message},
+            ],
+          },
         ],
-        'max_tokens': 512,
-        'temperature': 0.7,
-        'top_p': 0.9,
-        'presence_penalty': 0.3,
+        'generationConfig': {
+          'temperature': 0.7,
+          'topP': 0.9,
+          'maxOutputTokens': 512,
+        },
       });
 
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${chosenKey ?? ''}',
-        },
-        body: body,
-      );
+      String? extractTextFromGeminiResponse(Object? decoded) {
+        if (decoded is! Map) return null;
+        final candidates = decoded['candidates'];
+        if (candidates is List && candidates.isNotEmpty) {
+          final content = (candidates[0] as Map?)?['content'];
+          final parts = (content as Map?)?['parts'];
+          if (parts is List && parts.isNotEmpty) {
+            final text = (parts[0] as Map?)?['text'];
+            return text?.toString().trim();
+          }
+        }
+        return null;
+      }
 
-      debugPrint('ChatService: External AI response ${response.statusCode}');
+      Future<String?> tryGenerateContent(Uri endpoint) async {
+        final safeEndpoint = endpoint.replace(
+          queryParameters: {'key': keyDisplay},
+        );
+        debugPrint('ChatService: External AI POST $safeEndpoint');
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
-        // OpenAI Chat Completions: choices[0].message.content
-        final content = data['choices']?[0]?['message']?['content'];
-        if (content != null) return content.toString().trim();
-      } else {
-        debugPrint('ChatService: External AI error body: ${response.body}');
+        final response = await http.post(
+          endpoint,
+          headers: {'Content-Type': 'application/json'},
+          body: body,
+        );
+
+        debugPrint('ChatService: External AI response ${response.statusCode}');
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(utf8.decode(response.bodyBytes));
+          return extractTextFromGeminiResponse(data);
+        }
+
+        // Bubble up helpful context in logs, but keep it short.
+        final errBody = utf8.decode(response.bodyBytes);
+        debugPrint(
+          'ChatService: External AI error ${response.statusCode}: ${errBody.length > 500 ? '${errBody.substring(0, 500)}...' : errBody}',
+        );
+        return null;
+      }
+
+      Future<List<String>> listModels({
+        required Uri base,
+        required String version,
+      }) async {
+        final url = Uri(
+          scheme: base.scheme,
+          host: base.host,
+          port: base.hasPort ? base.port : null,
+          path: '/$version/models',
+          queryParameters: {'key': chosenKey},
+        );
+        final safeUrl = url.replace(queryParameters: {'key': keyDisplay});
+        debugPrint('ChatService: External AI ListModels GET $safeUrl');
+
+        final resp = await http.get(url);
+        if (resp.statusCode != 200) {
+          final body = utf8.decode(resp.bodyBytes);
+          debugPrint(
+            'ChatService: External AI ListModels error ${resp.statusCode}: ${body.length > 300 ? '${body.substring(0, 300)}...' : body}',
+          );
+          return const [];
+        }
+        final decoded = jsonDecode(utf8.decode(resp.bodyBytes));
+        if (decoded is! Map) return const [];
+        final models = decoded['models'];
+        if (models is! List) return const [];
+
+        final names = <String>[];
+        for (final m in models) {
+          if (m is! Map) continue;
+          final name = m['name']?.toString();
+          if (name == null || name.isEmpty) continue;
+          final methods = m['supportedGenerationMethods'];
+          final supportsGenerate =
+              methods is List &&
+              methods.any((x) => x.toString() == 'generateContent');
+          if (!supportsGenerate) continue;
+          names.add(name);
+        }
+        return names;
+      }
+
+      // First try the configured endpoint directly.
+      final configured = Uri.parse(
+        FALLBACK_AI_URL,
+      ).replace(queryParameters: {'key': chosenKey});
+      final configuredText = await tryGenerateContent(configured);
+      if (configuredText != null && configuredText.isNotEmpty) {
+        return configuredText;
+      }
+
+      // If that fails (often due to model/version mismatch), try discovering
+      // a supported model via ListModels and retry.
+      final base = Uri.parse(FALLBACK_AI_URL);
+      final pathSegments = base.pathSegments;
+      final versionFromUrl = pathSegments.isNotEmpty
+          ? pathSegments.first
+          : 'v1beta';
+
+      for (final version in <String>[versionFromUrl, 'v1beta', 'v1'].toSet()) {
+        final modelNames = await listModels(base: base, version: version);
+        if (modelNames.isEmpty) continue;
+
+        // Prefer gemini models if available.
+        String pickModel(List<String> names) {
+          for (final n in names) {
+            if (n.toLowerCase().contains('gemini')) return n;
+          }
+          return names.first;
+        }
+
+        final selected = pickModel(modelNames);
+        final endpoint = Uri(
+          scheme: base.scheme,
+          host: base.host,
+          port: base.hasPort ? base.port : null,
+          path: '/$version/$selected:generateContent',
+          queryParameters: {'key': chosenKey},
+        );
+
+        final text = await tryGenerateContent(endpoint);
+        if (text != null && text.isNotEmpty) return text;
       }
     } catch (e) {
       debugPrint('ChatService: External AI exception: $e');
     }
 
     return null;
-  }
-
-  /// Lightweight local rule-based reply used when both backend and external AI fail.
-  String _localRuleReply(String message) {
-    final m = message.toLowerCase();
-
-    if (m.contains('hello') || m.contains('hi') || m.contains('hey')) {
-      return 'Hi — nice to hear from you! How can I help today?';
-    }
-
-    if (m.contains('sad') || m.contains('depress') || m.contains('unhappy')) {
-      return 'I\'m sorry you\'re feeling down. Would you like to tell me more about what\'s been happening? I can listen or suggest small steps to help.';
-    }
-
-    if (m.contains('anx') || m.contains('anxious') || m.contains('worried')) {
-      return 'It sounds like you\'re feeling anxious. Try grounding: take a slow breath in for 4 seconds, hold 4, and breathe out for 6. If you want, tell me what\'s on your mind.';
-    }
-
-    if (m.contains('help') || m.contains('support')) {
-      return 'I can listen and offer suggestions. Tell me more about what you\'re facing, or say "small step" for one simple idea to try now.';
-    }
-
-    // If the user asked for a small actionable step
-    if (m.contains('small step') || m.contains('one step')) {
-      return 'One small step: take 5 minutes to notice one thing that felt neutral or slightly positive today — write it down. Small consistent actions add up.';
-    }
-
-    // Default: reflective prompt + suggestion
-    final short = message.length > 120
-        ? '${message.substring(0, 117)}...'
-        : message;
-    return 'I heard: "$short". That makes sense. If you\'d like, I can help break this down into a small next step or just listen.';
   }
 }
