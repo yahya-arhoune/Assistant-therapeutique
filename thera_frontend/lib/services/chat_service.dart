@@ -9,6 +9,22 @@ import '../models/chat_message.dart';
 class ChatService {
   /// SEND MESSAGE TO AI
   Future<ChatMessage> sendMessage(String message, String token) async {
+    // If user prefers the local assistant, return that immediately.
+    try {
+      final preferLocal = await SecureStorageService.getPreferLocalAssistant();
+      if (preferLocal) {
+        final local = _localRuleReply(message);
+        return ChatMessage(
+          id: DateTime.now().millisecondsSinceEpoch,
+          sender: 'assistant',
+          message: local,
+          timestamp: DateTime.now(),
+          isFallback: true,
+        );
+      }
+    } catch (e) {
+      // ignore preference errors and continue with normal flow
+    }
     try {
       final url = Uri.parse(ApiConfig.sendMessage);
 
@@ -135,12 +151,22 @@ class ChatService {
         'ChatService: External headers: Authorization: Bearer $keyDisplay',
       );
 
+      // System prompt to guide the external model to behave as a
+      // compassionate therapeutic assistant (empathic, non-judgmental,
+      // and focused on brief, actionable support and reflective listening).
+      final systemPrompt =
+          'You are a compassionate therapeutic assistant. Use empathic, non-judgmental language, validate emotions, offer brief reflective listening, and when appropriate suggest one or two small, practical coping strategies. Do not provide medical or legal advice. Keep responses supportive and concise.';
+
       final body = jsonEncode({
         'model': 'gpt-3.5-turbo',
         'messages': [
+          {'role': 'system', 'content': systemPrompt},
           {'role': 'user', 'content': message},
         ],
         'max_tokens': 512,
+        'temperature': 0.7,
+        'top_p': 0.9,
+        'presence_penalty': 0.3,
       });
 
       final response = await http.post(
@@ -178,21 +204,26 @@ class ChatService {
     }
 
     if (m.contains('sad') || m.contains('depress') || m.contains('unhappy')) {
-      return 'I\'m sorry you\'re feeling down. Would you like to talk about what\'s been happening?';
+      return 'I\'m sorry you\'re feeling down. Would you like to tell me more about what\'s been happening? I can listen or suggest small steps to help.';
     }
 
     if (m.contains('anx') || m.contains('anxious') || m.contains('worried')) {
-      return 'It sounds like you\'re feeling anxious. Try taking a few deep breaths — inhaling slowly for 4 seconds, holding for 4, and exhaling for 6.';
+      return 'It sounds like you\'re feeling anxious. Try grounding: take a slow breath in for 4 seconds, hold 4, and breathe out for 6. If you want, tell me what\'s on your mind.';
     }
 
     if (m.contains('help') || m.contains('support')) {
-      return 'I can listen and offer suggestions. Tell me more about what you\'re facing.';
+      return 'I can listen and offer suggestions. Tell me more about what you\'re facing, or say "small step" for one simple idea to try now.';
     }
 
-    // Default: reflective prompt + small suggestion
+    // If the user asked for a small actionable step
+    if (m.contains('small step') || m.contains('one step')) {
+      return 'One small step: take 5 minutes to notice one thing that felt neutral or slightly positive today — write it down. Small consistent actions add up.';
+    }
+
+    // Default: reflective prompt + suggestion
     final short = message.length > 120
         ? '${message.substring(0, 117)}...'
         : message;
-    return 'You said: "$short". That\'s understandable — one small step you could try is to write down one thing that felt okay today.';
+    return 'I heard: "$short". That makes sense. If you\'d like, I can help break this down into a small next step or just listen.';
   }
 }

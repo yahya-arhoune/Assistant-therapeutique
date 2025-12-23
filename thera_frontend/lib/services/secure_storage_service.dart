@@ -25,4 +25,18 @@ class SecureStorageService {
     }
     await _storage.delete(key: _fallbackKey);
   }
+
+  // Preference: whether to prefer local assistant responses
+  static const _preferLocalKey = 'prefer_local_assistant_v1';
+
+  static Future<void> setPreferLocalAssistant(bool prefer) async {
+    if (kIsWeb) return;
+    await _storage.write(key: _preferLocalKey, value: prefer ? '1' : '0');
+  }
+
+  static Future<bool> getPreferLocalAssistant() async {
+    if (kIsWeb) return false;
+    final v = await _storage.read(key: _preferLocalKey);
+    return v == '1';
+  }
 }

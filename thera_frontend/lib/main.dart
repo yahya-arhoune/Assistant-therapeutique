@@ -3,12 +3,20 @@ import 'package:provider/provider.dart';
 
 import 'providers/auth_provider.dart';
 import 'providers/journal_provider.dart';
+import 'services/secure_storage_service.dart';
 
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Ensure the 'Prefer Local Assistant' preference is OFF by default.
+  try {
+    await SecureStorageService.setPreferLocalAssistant(false);
+  } catch (_) {
+    // Ignore storage errors on startup.
+  }
   runApp(const TheraApp());
 }
 
