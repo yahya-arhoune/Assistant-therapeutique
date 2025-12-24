@@ -15,7 +15,7 @@ class JournalService {
     debugPrint('JournalService: Creating emotion $mood'); // DEBUG
     final url = Uri.parse(ApiConfig.createEmotion);
 
-    final tokenDisplay = (token != null && token.isNotEmpty)
+    final tokenDisplay = (token.isNotEmpty)
         ? '${token.substring(0, 8)}...'
         : 'NONE';
 
@@ -32,7 +32,7 @@ class JournalService {
         url,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': token != null && token.isNotEmpty
+          'Authorization': token.isNotEmpty
               ? 'Bearer $token'
               : '',
         },
@@ -62,7 +62,7 @@ class JournalService {
     debugPrint('JournalService: Fetching emotions'); // DEBUG
     final url = Uri.parse(ApiConfig.getEmotions);
 
-    final tokenDisplay = (token != null && token.isNotEmpty)
+    final tokenDisplay = (token.isNotEmpty)
         ? '${token.substring(0, 8)}...'
         : 'NONE';
 
@@ -73,7 +73,7 @@ class JournalService {
       final response = await http.get(
         url,
         headers: {
-          'Authorization': token != null && token.isNotEmpty
+          'Authorization': token.isNotEmpty
               ? 'Bearer $token'
               : '',
           'Content-Type': 'application/json',
